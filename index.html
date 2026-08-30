@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>tfknow</title>
+    <!-- Подключаем красивый шрифт Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f1016;
+            color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .card {
+            background: #181a26;
+            border: 1px solid #26293c;
+            border-radius: 24px;
+            padding: 40px 30px;
+            width: 100%;
+            max-width: 420px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .avatar-container {
+            position: relative;
+            width: 110px;
+            height: 110px;
+            margin: 0 auto 20px;
+        }
+
+        .avatar {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #4f46e5;
+            background-color: #26293c; /* заглушка, пока нет фото */
+        }
+
+        .nickname {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            letter-spacing: -0.5px;
+        }
+
+        .bio {
+            font-size: 15px;
+            color: #9ca3af;
+            line-height: 1.5;
+            margin-bottom: 30px;
+        }
+
+        .links {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #232638;
+            color: #ffffff;
+            text-decoration: none;
+            padding: 14px 20px;
+            border-radius: 12px;
+            font-weight: 500;
+            font-size: 15px;
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
+        }
+
+        .btn:hover {
+            background-color: #2d3148;
+            border-color: #4f46e5;
+            transform: translateY(-2px);
+        }
+
+        .footer {
+            margin-top: 30px;
+            font-size: 12px;
+            color: #6b7280;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <!-- Твоя аватарка (можешь заменить ссылку в src на свою картинку или путь к файлу) -->
+        <div class="avatar-container">
+            <img src="https://via.placeholder.com/150" alt="Avatar" class="avatar">
+        </div>
+
+        <!-- Ник -->
+        <h1 class="nickname">tfknow</h1>
+
+        <!-- Описание (кто ты, чем занимаешься) -->
+        <p class="bio">
+            Привет! Здесь собрана вся информация обо мне и мои ссылки. Добро пожаловать на мой личный сайт.
+        </p>
+
+        <!-- Кнопки-ссылки -->
+        <div class="links">
+            <a href="https://t.me/твои_ссылки" target="_blank" class="btn">Telegram</a>
+            <a href="https://github.com/твои_ссылки" target="_blank" class="btn">GitHub</a>
+            <a href="https://steamcommunity.com/твои_ссылки" target="_blank" class="btn">Steam</a>
+        </div>
+
+        <div class="footer">
+            © 2026 tfknow
+        </div>
+    </div>
+
+</body>
+</html>
