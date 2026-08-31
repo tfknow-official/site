@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>tfknow</title>
+    <title>tfknow - Karaoke</title>
     <style>
         * {
             margin: 0;
@@ -23,7 +23,7 @@
             padding: 20px;
         }
         .container {
-            max-width: 480px;
+            max-width: 520px;
             width: 100%;
             background: rgba(22, 27, 34, 0.85);
             backdrop-filter: blur(10px);
@@ -87,20 +87,28 @@
             margin-top: 10px;
         }
         .lyrics-container {
-            min-height: 60px;
+            min-height: 70px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 0.95rem;
-            color: #8b949e;
+            font-size: 1.1rem;
+            color: #484f58;
             text-align: center;
             padding: 0 10px;
             margin-bottom: 15px;
+            line-height: 1.5;
+            flex-wrap: wrap;
+            gap: 6px;
         }
-        .active-line {
+        /* Обычное слово (неактивное) */
+        .word {
+            transition: color 0.15s ease, text-shadow 0.15s ease;
+        }
+        /* Активное слово (подсвеченное караоке-эффектом) */
+        .word.active {
             color: #58a6ff;
-            font-weight: 600;
-            text-shadow: 0 0 10px rgba(88, 166, 255, 0.4);
+            font-weight: 700;
+            text-shadow: 0 0 12px rgba(88, 166, 255, 0.6);
         }
         .play-btn {
             background: #21262d;
@@ -142,7 +150,7 @@
 
         <div class="player-box">
             <div class="lyrics-container" id="lyrics">
-                <span class="active-line">Нажмите «Старт», чтобы запустить текст</span>
+                <span style="color: #8b949e;">Нажмите «Старт», чтобы запустить караоке</span>
             </div>
             <button class="play-btn" id="playBtn">▶ Старт</button>
         </div>
@@ -153,7 +161,6 @@
     </div>
 
     <script>
-        // Счётчик просмотров
         fetch('https://api.counterapi.dev/v1/tfknow_site/visits/up')
             .then(res => res.json())
             .then(data => {
@@ -163,27 +170,37 @@
             })
             .catch(() => {});
 
-        let lyricsData = [];
+        let linesData = [];
         const lyricsEl = document.getElementById('lyrics');
         const playBtn = document.getElementById('playBtn');
         let isPlaying = false;
         let startTime = 0;
         let timerInterval = null;
 
-        // Сдвигаем тайминги с нуля, чтобы текст шел сразу при нажатии старта
+        // Пример TTML структуры Apple Music с пословными таймингами (<span begin="..." end="...">)
         const ttmlString = `<?xml version="1.0" encoding="UTF-8"?>
-        <tt xmlns="http://www.w3.org/ns/ttml">
+        <tt xmlns="http://www.w3.org/ns/ttml" xmlns:itunes="http://music.apple.com/lyric-ttml-internal">
         <body>
             <div>
-                <p begin="0" end="4"><span>society desperate for remedy</span>[span_0](start_span)[span_0](end_span)</p>
-                <p begin="4" end="8"><span>empathy, fix this reality</span>[span_1](start_span)[span_1](end_span)</p>
-                <p begin="8" end="12"><span>you know i don't believe i belong</span>[span_2](start_span)[span_2](end_span)</p>
-                <p begin="12" end="16"><span>gimme something to love</span>[span_3](start_span)[span_3](end_span)</p>
-                <p begin="16" end="20"><span>gimme something overwhelming</span>[span_4](start_span)[span_4](end_span)</p>
-                <p begin="20" end="24"><span>buy the ticket, take the ride</span>[span_5](start_span)[span_5](end_span)</p>
-                <p begin="24" end="28"><span>kiss me like you know this is goodbye</span>[span_6](start_span)[span_6](end_span)</p>
-                <p begin="28" end="32"><span>we could try to make it all the way out</span>[span_7](start_span)[span_7](end_span)</p>
-                <p begin="32" end="36"><span>grab me like my life is on the line</span>[span_8](start_span)[span_8](end_span)</p>
+                <p begin="0" end="4">
+                    <span begin="0" end="1">society</span> 
+                    <span begin="1" end="2">desperate</span> 
+                    <span begin="2" end="3">for</span> 
+                    <span begin="3" end="4">remedy</span>
+                </p>
+                <p begin="4" end="8">
+                    <span begin="4" end="5">empathy,</span> 
+                    <span begin="5" end="6">fix</span> 
+                    <span begin="6" end="7">this</span> 
+                    <span begin="7" end="8">reality</span>
+                </p>
+                <p begin="8" end="12">
+                    <span begin="8" end="9.3">you</span> 
+                    <span begin="9.3" end="9.8">know</span> 
+                    <span begin="9.8" end="10.2">i</span> 
+                    <span begin="10.2" end="11">don't</span> 
+                    <span begin="11" end="12">belong</span>
+                </p>
             </div>
         </body>
         </tt>`;
@@ -192,14 +209,30 @@
             const parser = new window.DOMParser();
             const xmlDoc = parser.parseFromString(ttmlString, "text/xml");
             const pNodes = xmlDoc.getElementsByTagName('p');
+            
             for (let p of pNodes) {
-                let begin = parseFloat(p.getAttribute('begin'));
-                let end = parseFloat(p.getAttribute('end'));
-                let text = p.textContent ? p.textContent.trim() : '';
-                lyricsData.push({ begin, end, text });
+                let lineBegin = parseFloat(p.getAttribute('begin')) || 0;
+                let lineEnd = parseFloat(p.getAttribute('end')) || 999;
+                let spanNodes = p.getElementsByTagName('span');
+                let words = [];
+
+                if (spanNodes.length > 0) {
+                    for (let span of spanNodes) {
+                        let wBegin = parseFloat(span.getAttribute('begin'));
+                        let wEnd = parseFloat(span.getAttribute('end'));
+                        let wText = span.textContent.trim();
+                        if (!isNaN(wBegin)) {
+                            words.push({ begin: wBegin, end: wEnd, text: wText });
+                        }
+                    }
+                }
+                
+                if (words.length > 0) {
+                    linesData.push({ begin: lineBegin, end: lineEnd, words: words });
+                }
             }
         } catch (e) {
-            console.error("Ошибка парсинга", e);
+            console.error("Ошибка парсинга TTML", e);
         }
 
         playBtn.addEventListener('click', () => {
@@ -211,15 +244,26 @@
                 timerInterval = setInterval(() => {
                     let currentTime = (Date.now() - startTime) / 1000;
                     
-                    let currentLine = lyricsData.find(item => currentTime >= item.begin && currentTime <= item.end);
+                    // Ищем активную строчку
+                    let currentLine = linesData.find(line => currentTime >= line.begin && currentTime <= line.end);
+                    
                     if (currentLine) {
-                        lyricsEl.innerHTML = `<span class="active-line">${currentLine.text}</span>`;
+                        // Рендерим слова строки, подсвечивая то, чьё время наступило
+                        let html = '';
+                        currentLine.words.forEach(w => {
+                            let isActive = currentTime >= w.begin && currentTime <= (w.end || w.begin + 0.5);
+                            let activeClass = isActive ? 'word active' : 'word';
+                            html += `<span class="${activeClass}">${w.text}</span> `;
+                        });
+                        lyricsEl.innerHTML = html;
+                    } else {
+                        lyricsEl.innerHTML = `<span style="color: #484f58;">...</span>`;
                     }
                     
-                    if (currentTime > 40) {
+                    if (currentTime > 20) {
                         stopTimer();
                     }
-                }, 100);
+                }, 50);
             } else {
                 stopTimer();
             }
@@ -229,7 +273,7 @@
             isPlaying = false;
             clearInterval(timerInterval);
             playBtn.textContent = "▶ Старт";
-            lyricsEl.innerHTML = `<span class="active-line">Нажмите «Старт», чтобы запустить текст</span>`;
+            lyricsEl.innerHTML = `<span style="color: #8b949e;">Нажмите «Старт», чтобы запустить караоке</span>`;
         }
     </script>
 
