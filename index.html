@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>tf.know | Профиль</title>
+    <title>tfknow</title>
     <style>
         * {
             margin: 0;
@@ -12,7 +12,6 @@
         }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            /* Ссылка на задний фон (можешь заменить URL на свою картинку) */
             background: linear-gradient(rgba(13, 17, 23, 0.85), rgba(13, 17, 23, 0.95)), 
                         url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1920&auto=format&fit=crop') no-repeat center center fixed;
             background-size: cover;
@@ -24,21 +23,20 @@
             padding: 20px;
         }
         .container {
-            max-width: 450px;
+            max-width: 480px;
             width: 100%;
             background: rgba(22, 27, 34, 0.85);
             backdrop-filter: blur(10px);
             border: 1px solid #30363d;
             border-radius: 16px;
-            padding: 40px 30px;
+            padding: 35px 25px;
             text-align: center;
             box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6);
         }
-        /* Стили для аватарки */
         .avatar-container {
-            width: 100px;
-            height: 100px;
-            margin: 0 auto 20px auto;
+            width: 90px;
+            height: 90px;
+            margin: 0 auto 15px auto;
             border-radius: 50%;
             overflow: hidden;
             border: 2px solid #58a6ff;
@@ -52,37 +50,65 @@
         }
         h1 {
             color: #f0f6fc;
-            font-size: 1.8rem;
-            margin-bottom: 8px;
+            font-size: 1.6rem;
+            margin-bottom: 5px;
         }
         .tagline {
             color: #8b949e;
-            font-size: 1rem;
-            margin-bottom: 25px;
+            font-size: 0.95rem;
+            margin-bottom: 20px;
         }
-        /* Блок со счетчиком просмотров */
         .views-counter {
             display: inline-flex;
             align-items: center;
             gap: 8px;
             background: rgba(13, 17, 23, 0.7);
             border: 1px solid #30363d;
-            padding: 8px 16px;
+            padding: 6px 14px;
             border-radius: 20px;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             color: #8b949e;
+            margin-bottom: 20px;
         }
         .views-counter svg {
-            width: 18px;
-            height: 18px;
+            width: 16px;
+            height: 16px;
             fill: #58a6ff;
         }
         .views-counter span {
             color: #f0f6fc;
             font-weight: bold;
         }
+        .player-box {
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 12px;
+            padding: 15px;
+            margin-top: 10px;
+        }
+        audio {
+            width: 100%;
+            margin-bottom: 12px;
+            outline: none;
+            filter: invert(1) hue-rotate(180deg);
+        }
+        .lyrics-container {
+            min-height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.95rem;
+            color: #8b949e;
+            text-align: center;
+            padding: 0 10px;
+        }
+        .active-line {
+            color: #58a6ff;
+            font-weight: 600;
+            text-shadow: 0 0 10px rgba(88, 166, 255, 0.4);
+        }
         footer {
-            margin-top: 30px;
+            margin-top: 25px;
             font-size: 0.8rem;
             color: #484f58;
         }
@@ -91,12 +117,12 @@
 <body>
 
     <div class="container">
-        <!-- Аватарка (замени ссылку в src на свою картинку) -->
+        <!-- Аватарка профиля -->
         <div class="avatar-container">
-            <img src="https://github.com/tfknow_official.png" alt="Аватарка tf.know">
+            <img src="https://github.com/tfknow.png" alt="Аватарка tfknow">
         </div>
 
-        <h1>tf.know</h1>
+        <h1>tfknow</h1>
         <div class="tagline">Разработчик • Автоматизация • TTML</div>
         
         <!-- Счётчик просмотров со значком глаза -->
@@ -107,21 +133,92 @@
             <span id="view-count">...</span>
         </div>
 
+        <!-- Плеер и синхронизированный блок текста -->
+        <div class="player-box">
+            <audio id="audio" controls src="song.mp3"></audio>
+            <div class="lyrics-container" id="lyrics">
+                <span class="active-line">Нажмите play для воспроизведения</span>
+            </div>
+        </div>
+
         <footer>
-            &copy; 2026 tf.know
+            &copy; 2026 tfknow
         </footer>
     </div>
 
     <script>
-        // Автоматический подсчёт просмотров через публичное API
-        fetch('https://api.counterapi.dev/v1/tfknow/site_visits/up')
-            .then(response => response.json())
-            .then(data => {
-                document.getElementById('view-count').textContent = data.count;
-            })
-            .catch(error => {
-                document.getElementById('view-count').textContent = '1';
-            });
+        // Счётчик просмотров
+        fetch('https://api.counterapi.dev/v1/tfknow_site/visits/up')
+            .then(res => res.json())
+            .then(data => document.getElementById('view-count').textContent = data.count)
+            .catch(() => document.getElementById('view-count').textContent = '1');
+
+        let lyricsData = [];
+        const audio = document.getElementById('audio');
+        const lyricsEl = document.getElementById('lyrics');
+
+        // Встроенный TTML (автоматически распарсен из твоего файла)
+        const ttmlString = `<?xml version="1.0" encoding="UTF-8"?>
+        <tt xmlns="http://www.w3.org/ns/ttml" xmlns:itunes="http://music.apple.com/lyric-ttml-internal" xmlns:ttm="http://www.w3.org/ns/ttml#metadata" itunes:timing="Word" xml:lang="en">
+        <body>
+            <div begin="40.331" end="59.344" itunes:songPart="Verse">
+                <p begin="40.331" end="44.177" itunes:key="L1" ttm:agent="v1"><span>society desperate for remedy</span></p>
+                <p begin="45.140" end="48.923" itunes:key="L2" ttm:agent="v1"><span>empathy, fix this reality</span></p>
+                <p begin="49.004" end="52.227" itunes:key="L3" ttm:agent="v1"><span>you know i don't believe i</span></p>
+                <p begin="52.573" end="55.891" itunes:key="L4" ttm:agent="v1"><span>belong</span></p>
+                <p begin="53.807" end="56.695" itunes:key="L5" ttm:agent="v1"><span>you know i don't believe this</span></p>
+                <p begin="56.828" end="59.344" itunes:key="L6" ttm:agent="v1"><span>i don't believe i</span></p>
+            </div>
+            <div begin="59.536" end="1:17.356" itunes:songPart="PreChorus">
+                <p begin="59.536" end="1:01.295" itunes:key="L7" ttm:agent="v1"><span>gimme something to love</span></p>
+                <p begin="1:01.861" end="1:03.727" itunes:key="L8" ttm:agent="v1"><span>gimme something overwhelming</span></p>
+                <p begin="1:04.281" end="1:07.607" itunes:key="L9" ttm:agent="v1"><span>buy the ticket, take the ride</span></p>
+                <p begin="1:09.108" end="1:10.989" itunes:key="L10" ttm:agent="v1"><span>gimme something to love</span></p>
+                <p begin="1:11.491" end="1:13.317" itunes:key="L11" ttm:agent="v1"><span>something just to obsess me</span></p>
+                <p begin="1:13.600" end="1:17.356" itunes:key="L12" ttm:agent="v1"><span>it's do or die, bring me to life</span></p>
+            </div>
+            <div begin="1:19.549" end="1:54.462" itunes:songPart="Chorus">
+                <p begin="1:19.549" end="1:24.587" itunes:key="L13" ttm:agent="v1"><span>kiss me like you know this is goodbye</span></p>
+                <p begin="1:24.680" end="1:29.195" itunes:key="L14" ttm:agent="v1"><span>we could try to make it all the way out</span></p>
+                <p begin="1:29.225" end="1:34.049" itunes:key="L15" ttm:agent="v1"><span>grab me like my life is on the line</span></p>
+                <p begin="1:34.360" end="1:38.641" itunes:key="L16" ttm:agent="v1"><span>we decide to make it all the way out</span></p>
+                <p begin="1:38.819" end="1:44.032" itunes:key="L17" ttm:agent="v1"><span>my heart in your hands despite all of my plans</span></p>
+                <p begin="1:43.936" end="1:48.348" itunes:key="L18" ttm:agent="v1"><span>we could try to make it, make it all count</span></p>
+                <p begin="1:48.417" end="1:54.462" itunes:key="L19" ttm:agent="v1"><span>kiss me like you know this is goodbye</span></p>
+            </div>
+        </body>
+        </tt>`;
+
+        // Парсим TTML прямо внутри скрипта
+        const xmlDoc = new window.DOMParser().parseFromString(ttmlString, "text/xml");
+        const pNodes = xmlDoc.getElementsByTagName('p');
+        for (let p of pNodes) {
+            let begin = parseTime(p.getAttribute('begin'));
+            let end = parseTime(p.getAttribute('end'));
+            let text = p.textContent.trim();
+            if (!isNaN(begin)) {
+                lyricsData.push({ begin, end, text });
+            }
+        }
+
+        function parseTime(tStr) {
+            if (!tStr) return 0;
+            if (tStr.includes(':')) {
+                let parts = tStr.split(':');
+                return parseFloat(parts[0]) * 60 + parseFloat(parts[1]);
+            }
+            return parseFloat(tStr);
+        }
+
+        // Обновление строк текста при проигрывании аудио
+        audio.addEventListener('timeupdate', () => {
+            let currentTime = audio.currentTime;
+            let currentLine = lyricsData.find(item => currentTime >= item.begin && currentTime <= (item.end || item.begin + 5));
+            
+            if (currentLine) {
+                lyricsEl.innerHTML = `<span class="active-line">${currentLine.text}</span>`;
+            }
+        });
     </script>
 
 </body>
