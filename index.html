@@ -3,129 +3,115 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>tfknow</title>
-    <!-- Подключаем красивый шрифт Inter -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <title>tf.know | Профиль</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: #0f1016;
-            color: #ffffff;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: #0d1117;
+            color: #c9d1d9;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
             padding: 20px;
         }
-
-        .card {
-            background: #181a26;
-            border: 1px solid #26293c;
-            border-radius: 24px;
-            padding: 40px 30px;
+        .container {
+            max-width: 600px;
             width: 100%;
-            max-width: 420px;
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 12px;
+            padding: 40px;
             text-align: center;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
         }
-
-        .avatar-container {
-            position: relative;
-            width: 110px;
-            height: 110px;
-            margin: 0 auto 20px;
+        h1 {
+            color: #f0f6fc;
+            font-size: 2rem;
+            margin-bottom: 10px;
         }
-
-        .avatar {
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 2px solid #4f46e5;
-            background-color: #26293c; /* заглушка, пока нет фото */
-        }
-
-        .nickname {
-            font-size: 24px;
-            font-weight: 700;
-            margin-bottom: 8px;
-            letter-spacing: -0.5px;
-        }
-
-        .bio {
-            font-size: 15px;
-            color: #9ca3af;
-            line-height: 1.5;
+        .tagline {
+            color: #8b949e;
+            font-size: 1.1rem;
             margin-bottom: 30px;
         }
-
         .links {
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 15px;
+            margin-bottom: 30px;
         }
-
-        .btn {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background-color: #232638;
-            color: #ffffff;
+        a.btn {
+            display: inline-block;
+            background: #21262d;
+            color: #f0f6fc;
+            border: 1px solid #30363d;
+            padding: 12px 20px;
+            border-radius: 8px;
             text-decoration: none;
-            padding: 14px 20px;
-            border-radius: 12px;
-            font-weight: 500;
-            font-size: 15px;
+            font-weight: 600;
             transition: all 0.2s ease;
-            border: 1px solid transparent;
         }
-
-        .btn:hover {
-            background-color: #2d3148;
-            border-color: #4f46e5;
+        a.btn:hover {
+            background: #30363d;
+            border-color: #8b949e;
             transform: translateY(-2px);
         }
-
-        .footer {
+        .counter-box {
+            background: #0d1117;
+            border: 1px solid #30363d;
+            padding: 10px 15px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            color: #8b949e;
+            display: inline-block;
+        }
+        .counter-box span {
+            color: #58a6ff;
+            font-weight: bold;
+        }
+        footer {
             margin-top: 30px;
-            font-size: 12px;
-            color: #6b7280;
+            font-size: 0.85rem;
+            color: #484f58;
         }
     </style>
 </head>
 <body>
 
-    <div class="card">
-        <!-- Твоя аватарка (можешь заменить ссылку в src на свою картинку или путь к файлу) -->
-        <div class="avatar-container">
-            <img src="https://via.placeholder.com/150" alt="Avatar" class="avatar">
-        </div>
-
-        <!-- Ник -->
-        <h1 class="nickname">tfknow</h1>
-
-        <!-- Описание (кто ты, чем занимаешься) -->
-        <p class="bio">
-            Привет! Здесь собрана вся информация обо мне и мои ссылки. Добро пожаловать на мой личный сайт.
-        </p>
-
-        <!-- Кнопки-ссылки -->
+    <div class="container">
+        <h1>tf.know</h1>
+        <div class="tagline">Разработчик • Автоматизация • TTML & Проекты</div>
+        
         <div class="links">
-            <a href="https://t.me/твои_ссылки" target="_blank" class="btn">Telegram</a>
-            <a href="https://github.com/твои_ссылки" target="_blank" class="btn">GitHub</a>
-            <a href="https://steamcommunity.com/твои_ссылки" target="_blank" class="btn">Steam</a>
+            <a href="https://github.com/tfknow_official" class="btn" target="_blank">GitHub Профиль</a>
         </div>
 
-        <div class="footer">
-            © 2026 tfknow
+        <div class="counter-box">
+            👀 Просмотров сайта: <span id="view-count">загрузка...</span>
         </div>
+
+        <footer>
+            &copy; 2026 tf.know. Все права защищены.
+        </footer>
     </div>
+
+    <script>
+        // Автоматический счётчик просмотров через публичное API
+        fetch('https://api.counterapi.dev/v1/tfknow/site_visits/up')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('view-count').textContent = data.count;
+            })
+            .catch(error => {
+                document.getElementById('view-count').textContent = 'доступно';
+            });
+    </script>
 
 </body>
 </html>
