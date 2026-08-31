@@ -100,11 +100,9 @@
             flex-wrap: wrap;
             gap: 6px;
         }
-        /* Обычное слово (неактивное) */
         .word {
             transition: color 0.15s ease, text-shadow 0.15s ease;
         }
-        /* Активное слово (подсвеченное караоке-эффектом) */
         .word.active {
             color: #58a6ff;
             font-weight: 700;
@@ -150,9 +148,9 @@
 
         <div class="player-box">
             <div class="lyrics-container" id="lyrics">
-                <span style="color: #8b949e;">Нажмите «Старт», чтобы запустить караоке</span>
+                <span style="color: #8b949e;">Загрузка текста...</span>
             </div>
-            <button class="play-btn" id="playBtn">▶ Старт</button>
+            <button class="play-btn" id="playBtn" disabled>▶ Загрузка...</button>
         </div>
 
         <footer>
@@ -177,63 +175,55 @@
         let startTime = 0;
         let timerInterval = null;
 
-        // Пример TTML структуры Apple Music с пословными таймингами (<span begin="..." end="...">)
-        const ttmlString = `<?xml version="1.0" encoding="UTF-8"?>
-        <tt xmlns="http://www.w3.org/ns/ttml" xmlns:itunes="http://music.apple.com/lyric-ttml-internal">
-        <body>
-            <div>
-                <p begin="0" end="4">
-                    <span begin="0" end="1">society</span> 
-                    <span begin="1" end="2">desperate</span> 
-                    <span begin="2" end="3">for</span> 
-                    <span begin="3" end="4">remedy</span>
-                </p>
-                <p begin="4" end="8">
-                    <span begin="4" end="5">empathy,</span> 
-                    <span begin="5" end="6">fix</span> 
-                    <span begin="6" end="7">this</span> 
-                    <span begin="7" end="8">reality</span>
-                </p>
-                <p begin="8" end="12">
-                    <span begin="8" end="9.3">you</span> 
-                    <span begin="9.3" end="9.8">know</span> 
-                    <span begin="9.8" end="10.2">i</span> 
-                    <span begin="10.2" end="11">don't</span> 
-                    <span begin="11" end="12">belong</span>
-                </p>
-            </div>
-        </body>
-        </tt>`;
+        // Функция конвертации таймингов TTML в секунды (поддерживает формат секунды или ЧЧ:ММ:СС.ссс)
+        function parseTime(tStr) {
+            if (!tStr) return 0;
+            if (tStr.includes(':')) {
+                let parts = tStr.split(':');
+                return parseFloat(parts[0]) * 3600 + parseFloat(parts[1]) * 60 + parseFloat(parts[2]);
+            }
+            // Если указано в формате типа "40.331s" или просто числа
+            return parseFloat(tStr);
+        }
 
-        try {
-            const parser = new window.DOMParser();
-            const xmlDoc = parser.parseFromString(ttmlString, "text/xml");
-            const pNodes = xmlDoc.getElementsByTagName('p');
-            
-            for (let p of pNodes) {
-                let lineBegin = parseFloat(p.getAttribute('begin')) || 0;
-                let lineEnd = parseFloat(p.getAttribute('end')) || 999;
-                let spanNodes = p.getElementsByTagName('span');
-                let words = [];
+        // Автоматически подгружаем TTML-файл из репозитория
+        fetch('lyrics.ttml')
+            .then(response => response.text())
+            .then(ttmlString => {
+                const parser = new window.DOMParser();
+                const xmlDoc = parser.parseFromString(ttmlString, "text/xml");
+                const pNodes = xmlDoc.getElementsByTagName('p');
+                
+                for (let p of pNodes) {
+                    let lineBegin = parseTime(p.getAttribute('begin')) || 0;
+                    let lineEnd = parseTime(p.getAttribute('end')) || 9999;
+                    let spanNodes = p.getElementsByTagName('span');
+                    let words = [];
 
-                if (spanNodes.length > 0) {
-                    for (let span of spanNodes) {
-                        let wBegin = parseFloat(span.getAttribute('begin'));
-                        let wEnd = parseFloat(span.getAttribute('end'));
-                        let wText = span.textContent.trim();
-                        if (!isNaN(wBegin)) {
-                            words.push({ begin: wBegin, end: wEnd, text: wText });
+                    if (spanNodes.length > 0) {
+                        for (let span of spanNodes) {
+                            let wBegin = parseTime(span.getAttribute('begin'));
+                            let wEnd = parseTime(span.getAttribute('end'));
+                            let wText = span.textContent;
+                            if (!isNaN(wBegin)) {
+                                words.push({ begin: wBegin, end: wEnd, text: wText });
+                            }
                         }
                     }
+                    
+                    if (words.length > 0) {
+                        linesData.push({ begin: lineBegin, end: lineEnd, words: words });
+                    }
                 }
-                
-                if (words.length > 0) {
-                    linesData.push({ begin: lineBegin, end: lineEnd, words: words });
-                }
-            }
-        } catch (e) {
-            console.error("Ошибка парсинга TTML", e);
-        }
+
+                lyricsEl.innerHTML = `<span style="color: #8b949e;">Нажмите «Старт», чтобы запустить караоке</span>`;
+                playBtn.disabled = false;
+                playBtn.textContent = "▶ Старт";
+            })
+            .catch(err => {
+                console.error("Не удалось загрузить lyrics.ttml", err);
+                lyricsEl.innerHTML = `<span style="color: #f85149;">Ошибка: файл lyrics.ttml не найден</span>`;
+            });
 
         playBtn.addEventListener('click', () => {
             if (!isPlaying) {
@@ -244,24 +234,18 @@
                 timerInterval = setInterval(() => {
                     let currentTime = (Date.now() - startTime) / 1000;
                     
-                    // Ищем активную строчку
                     let currentLine = linesData.find(line => currentTime >= line.begin && currentTime <= line.end);
                     
                     if (currentLine) {
-                        // Рендерим слова строки, подсвечивая то, чьё время наступило
                         let html = '';
                         currentLine.words.forEach(w => {
-                            let isActive = currentTime >= w.begin && currentTime <= (w.end || w.begin + 0.5);
+                            let isActive = currentTime >= w.begin && currentTime <= (w.end || w.begin + 0.4);
                             let activeClass = isActive ? 'word active' : 'word';
                             html += `<span class="${activeClass}">${w.text}</span> `;
                         });
                         lyricsEl.innerHTML = html;
                     } else {
                         lyricsEl.innerHTML = `<span style="color: #484f58;">...</span>`;
-                    }
-                    
-                    if (currentTime > 20) {
-                        stopTimer();
                     }
                 }, 50);
             } else {
